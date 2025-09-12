@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Campaign Details</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="container mt-4">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary btn-sm mb-3">⬅ Back</a>
+
+        <h2>📊 Campaign: {{ campaign.campaign_name }}</h2>
+        <p><strong>Subject:</strong> {{ campaign.email_subject or "—" }}</p>
+        <p><strong>Template:</strong> {{ campaign.template.name if campaign.template else "❌ Manual" }}</p>
+        <p><strong>Created:</strong> {{ campaign.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+
+        <h4 class="mt-4">Recipients</h4>
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>Email</th>
+                    <th>Status</th>
+                    <th>Clicked</th>
+                    <th>Awareness Sent</th>
+                    <th>Sent At</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in campaign.mail_logs %}
+                <tr>
+                    <td>{{ log.user.email }}</td>
+                    <td>
+                        {% if log.sent_status %}
+                            ✅ Sent
+                        {% else %}
+                            ❌ Failed
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if log.clicked %}
+                            🖱️ Yes
+                        {% else %}
+                            — 
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if log.awareness_sent %}
+                            📢 Yes
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+                    <td>{{ log.sent_at.strftime('%Y-%m-%d %H:%M:%S') if log.sent_at else "—" }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted">No recipients for this campaign.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

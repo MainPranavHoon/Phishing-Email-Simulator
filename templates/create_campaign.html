@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Create Campaign</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<div class="container py-5">
+    <div class="card shadow-lg border-0 rounded-4">
+        <div class="card-body p-5">
+            <h2 class="mb-4 text-center text-primary">Create New Campaign</h2>
+
+            <form method="POST" action="{{ url_for('create_campaign') }}">
+                <!-- Campaign Name -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Campaign Name</label>
+                    <input type="text" class="form-control rounded-3" name="campaign_name" placeholder="Enter campaign name" required>
+                </div>
+
+                <!-- Select recipients -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Select Recipients</label>
+                    <div class="p-3 border rounded bg-white" style="max-height:200px; overflow-y:auto;">
+                        {% for user in users %}
+                            <div class="form-check">
+                                <!-- Fixed: Using user_id instead of id -->
+                                <input class="form-check-input" type="checkbox" name="recipients[]" value="{{ user.user_id }}">
+                                <label class="form-check-label">{{ user.email }} (ID: {{ user.user_id }})</label>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Add a "Select All" button for convenience -->
+                <div class="mb-3">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleSelectAll()">Select All / Deselect All</button>
+                    <span class="ms-2 text-muted" id="selectedCount">0 recipients selected</span>
+                </div>
+
+                <!-- Template dropdown -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Choose Template</label>
+                    <select id="template_id" class="form-select rounded-3" name="template_id" onchange="loadTemplate(this.value)">
+                        <option value="">-- Select a Template --</option>
+                        {% for template in templates %}
+                            <option value="{{ template.id }}">{{ template.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Manual subject -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Email Subject</label>
+                    <input type="text" class="form-control rounded-3" id="email_subject" name="email_subject" placeholder="Enter subject" required>
+                </div>
+
+                <!-- Manual body -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Email Body</label>
+                    <textarea id="email_body" class="form-control rounded-3" name="email_body" rows="6" placeholder="Write your email body here..." required></textarea>
+                </div>
+
+                <!-- Submit -->
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary btn-lg px-4 rounded-3 shadow-sm" id="submitBtn">🚀 Create Campaign</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    function loadTemplate(templateId) {
+        if (templateId) {
+            fetch(`/get_template/${templateId}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("email_subject").value = data.subject;
+                    document.getElementById("email_body").value = data.body;
+                });
+        } else {
+            document.getElementById("email_subject").value = "";
+            document.getElementById("email_body").value = "";
+        }
+    }
+
+    function toggleSelectAll() {
+        const checkboxes = document.querySelectorAll('input[name="recipients[]"]');
+        const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+        
+        checkboxes.forEach(cb => {
+            cb.checked = !allChecked;
+        });
+        
+        updateSelectedCount();
+    }
+
+    function updateSelectedCount() {
+        const checkedBoxes = document.querySelectorAll('input[name="recipients[]"]:checked');
+        const count = checkedBoxes.length;
+        document.getElementById('selectedCount').textContent = `${count} recipients selected`;
+        
+        // Enable/disable submit button based on selection
+        const submitBtn = document.getElementById('submitBtn');
+        if (count === 0) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = '🚀 Select Recipients First';
+            submitBtn.classList.add('btn-secondary');
+            submitBtn.classList.remove('btn-primary');
+        } else {
+            submitBtn.disabled = false;
+            submitBtn.textContent = `🚀 Create Campaign (${count} recipients)`;
+            submitBtn.classList.add('btn-primary');
+            submitBtn.classList.remove('btn-secondary');
+        }
+    }
+
+    // Add event listeners to checkboxes
+    document.addEventListener('DOMContentLoaded', function() {
+        const checkboxes = document.querySelectorAll('input[name="recipients[]"]');
+        checkboxes.forEach(cb => {
+            cb.addEventListener('change', updateSelectedCount);
+        });
+        
+        // Initial count update
+        updateSelectedCount();
+    });
+
+    // Form validation before submit
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const checkedBoxes = document.querySelectorAll('input[name="recipients[]"]:checked');
+        if (checkedBoxes.length === 0) {
+            e.preventDefault();
+            alert('Please select at least one recipient before creating the campaign.');
+        }
+    });
+</script>
+
+</body>
+</html>

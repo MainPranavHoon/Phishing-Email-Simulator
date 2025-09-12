@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enhanced Phishing Awareness Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<style>
+/* --- Styles --- */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  padding: 20px;
+}
+.dashboard-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+.header {
+  background: linear-gradient(135deg, #2c3e50, #3498db);
+  color: white;
+  padding: 30px;
+  text-align: center;
+}
+.header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+}
+.header p {
+  opacity: 0.9;
+  font-size: 1.1rem;
+}
+.filters {
+  padding: 20px 30px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+}
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.filter-group label {
+  font-weight: 600;
+  color: #495057;
+  font-size: 0.9rem;
+}
+.filter-group select {
+  padding: 8px 12px;
+  border: 2px solid #e9ecef;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  transition: border-color 0.2s;
+  min-width: 200px;
+}
+.filter-group select:focus {
+  outline: none;
+  border-color: #3498db;
+}
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  padding: 30px;
+}
+.metric-card {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+  border-left: 4px solid #3498db;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.metric-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 35px rgba(0,0,0,0.12);
+}
+.metric-card h3 {
+  color: #2c3e50;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+.metric-value {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #3498db;
+  margin-bottom: 5px;
+}
+.metric-label {
+  color: #7f8c8d;
+  font-size: 0.9rem;
+}
+.charts-section {
+  padding: 30px;
+  background: #f8f9fa;
+}
+.chart-container {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+  max-width: 800px;
+  margin: 0 auto;
+}
+.chart-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 20px;
+  text-align: center;
+}
+.campaigns-table {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  margin: 30px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+}
+.campaigns-table h3 {
+  margin-bottom: 20px;
+  color: #2c3e50;
+  font-size: 1.3rem;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+thead {
+  background: #3498db;
+  color: white;
+}
+th, td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #e9ecef;
+}
+th {
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+tbody tr:hover {
+  background: #f8f9fa;
+}
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+}
+.btn-edit {
+  background: #f39c12;
+  color: white;
+}
+.btn-edit:hover {
+  background: #e67e22;
+  transform: translateY(-1px);
+}
+.btn-send {
+  background: #27ae60;
+  color: white;
+}
+.btn-send:hover {
+  background: #229954;
+  transform: translateY(-1px);
+}
+.btn-delete {
+  background: #e74c3c;
+  color: white;
+}
+.btn-delete:hover {
+  background: #c0392b;
+  transform: translateY(-1px);
+}
+@media (max-width: 768px) {
+  .filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+  .action-buttons {
+    justify-content: center;
+  }
+  .btn {
+    font-size: 0.7rem;
+    padding: 4px 8px;
+  }
+}
+</style>
+</head>
+<body>
+<div class="dashboard-container">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>🛡️ Phishing Awareness Dashboard</h1>
+    <p>Welcome back, {{ username }}! Monitor campaign effectiveness and user security awareness</p>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters">
+    <div class="filter-group">
+      <label for="campaignFilter">Filter by Campaign:</label>
+      <select id="campaignFilter">
+        <option value="">All Campaigns</option>
+        {% for campaign in campaigns %}
+        <option value="{{ campaign.campaign_id }}">{{ campaign.campaign_name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+
+  <!-- Key Metrics -->
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <h3>Total Campaigns</h3>
+      <div class="metric-value">{{ campaigns|length }}</div>
+      <div class="metric-label">Active campaigns</div>
+    </div>
+    <div class="metric-card">
+      <h3>Emails Sent</h3>
+      <div class="metric-value">{{ total_email }}</div>
+      <div class="metric-label">Phishing simulations</div>
+    </div>
+    <div class="metric-card">
+      <h3>Total Clicks</h3>
+      <div class="metric-value">{{ total_clicks }}</div>
+      <div class="metric-label">Users who clicked</div>
+    </div>
+    <div class="metric-card">
+      <h3>Awareness Rate</h3>
+      <div class="metric-value">{{ "%.1f"|format(global_awareness_rate) }}%</div>
+      <div class="metric-label">Training delivered</div>
+    </div>
+  </div>
+
+  <!-- Chart -->
+  <div class="charts-section">
+    <div class="chart-container">
+      <div class="chart-title">Campaign Performance</div>
+      <canvas id="campaignChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Campaigns Table -->
+  <div class="campaigns-table">
+    <h3>📊 Campaign Details</h3>
+    {% if campaigns %}
+    <table>
+      <thead>
+        <tr>
+          <th>Campaign Name</th>
+          <th>Created Date</th>
+          <th>Recipients</th>
+          <th>Emails Sent</th>
+          <th>Clicks</th>
+          <th>Click Rate</th>
+          <th>Awareness Sent</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for campaign in campaigns %}
+        <tr data-campaign-id="{{ campaign.campaign_id }}">
+          <td><strong>{{ campaign.campaign_name }}</strong></td>
+          <td>{{ campaign.created_at.strftime('%Y-%m-%d') if campaign.created_at else 'N/A' }}</td>
+          <td>{{ campaign.total_emails }}</td>
+          <td>{{ campaign.total_emails }}</td>
+          <td>{{ campaign.total_clicks }}</td>
+          <td>{{ "%.1f"|format(campaign.click_rate) }}%</td>
+          <td>{{ campaign.total_awareness }}</td>
+          <td>
+            <div class="action-buttons">
+              <a href="/preview_campaign/{{ campaign.campaign_id }}" class="btn btn-edit">
+                👁️ Preview
+              </a>
+              <form method="POST" action="/send_campaign/{{ campaign.campaign_id }}" style="display: inline;" 
+                    onsubmit="return confirm('Are you sure you want to send this campaign to all recipients?')">
+                <button type="submit" class="btn btn-send">
+                  📧 Send
+                </button>
+              </form>
+              <form method="POST" action="/delete_campaign/{{ campaign.campaign_id }}" style="display: inline;" 
+                    onsubmit="return confirm('Are you sure you want to delete the campaign \'{{ campaign.campaign_name }}\'? This action cannot be undone.')">
+                <button type="submit" class="btn btn-delete">
+                  🗑️ Delete
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p style="text-align: center; color: #7f8c8d; font-style: italic; padding: 20px;">
+      No campaigns found. <a href="/create_campaign">Create your first campaign</a>
+    </p>
+    {% endif %}
+  </div>
+  
+  <!-- Action Buttons -->
+  <div style="padding: 30px; text-align: center;">
+    <a href="/create_campaign" class="btn btn-send" style="padding: 12px 24px; font-size: 1rem; text-decoration: none;">
+      ➕ Create New Campaign
+    </a>
+    <a href="/logout" class="btn btn-delete" style="padding: 12px 24px; font-size: 1rem; text-decoration: none; margin-left: 10px;">
+      🚪 Logout
+    </a>
+  </div>
+</div>
+
+<script>
+// Dynamic Chart Data from Flask
+const campaignData = {
+  labels: [{% for campaign in campaigns %}"{{ campaign.campaign_name }}"{% if not loop.last %},{% endif %}{% endfor %}],
+  clickRates: [{% for campaign in campaigns %}{{ campaign.click_rate }}{% if not loop.last %},{% endif %}{% endfor %}]
+};
+
+// Campaign Performance Chart
+const campaignCtx = document.getElementById('campaignChart').getContext('2d');
+new Chart(campaignCtx, {
+  type: 'bar',
+  data: {
+    labels: campaignData.labels,
+    datasets: [{
+      label: 'Click Rate (%)',
+      data: campaignData.clickRates,
+      backgroundColor: ['#e74c3c', '#f39c12', '#2ecc71', '#3498db', '#9b59b6', '#1abc9c'],
+      borderColor: ['#c0392b', '#e67e22', '#27ae60', '#2980b9', '#8e44ad', '#16a085'],
+      borderWidth: 2
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: false }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        max: Math.max(50, Math.max(...campaignData.clickRates) + 10),
+        ticks: {
+          callback: function(value) { return value + '%'; }
+        }
+      }
+    }
+  }
+});
+
+// Filter functionality
+document.getElementById('campaignFilter').addEventListener('change', filterData);
+
+function filterData() {
+  const selectedCampaign = document.getElementById('campaignFilter').value;
+  const rows = document.querySelectorAll('tbody tr');
+  
+  rows.forEach((row) => {
+    const campaignId = row.getAttribute('data-campaign-id');
+    if (!selectedCampaign || selectedCampaign == campaignId) {
+      row.style.display = '';
+    } else {
+      row.style.display = 'none';
+    }
+  });
+}
+</script>
+</body>
+</html>

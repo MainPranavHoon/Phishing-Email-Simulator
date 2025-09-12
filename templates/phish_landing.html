@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login - Secure Portal</title>
+</head>
+<body>
+    <h1>Welcome to the Secure Portal</h1>
+    <p>Hello {{ user.email }}, please log in to view your secure message.</p>
+    <form>
+        <label>Email:</label>
+        <input type="email" value="{{ user.email }}"><br><br>
+        <label>Password:</label>
+        <input type="password"><br><br>
+        <button type="submit">Login</button>
+    </form>
+    <hr>
+    <small>This is a phishing simulation for campaign: {{ campaign.name }}</small>
+</body>
+</html>
